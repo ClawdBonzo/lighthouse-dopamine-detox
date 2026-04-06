@@ -10,17 +10,18 @@ struct ContentView: View {
     enum AppTab: String, CaseIterable {
         case dashboard = "Dashboard"
         case log = "Log"
-        case streak = "Streak"
+        case streak = "Challenges"
         case progress = "Progress"
         case settings = "Settings"
 
-        var icon: String {
+        /// Asset catalog image name (template-rendered)
+        var assetIcon: String {
             switch self {
-            case .dashboard: "house.fill"
-            case .log: "square.and.pencil"
-            case .streak: "flame.fill"
-            case .progress: "chart.line.uptrend.xyaxis"
-            case .settings: "gearshape.fill"
+            case .dashboard: "Tab-Dashboard"
+            case .log: "Tab-DailyLogger"
+            case .streak: "Tab-Challenges"
+            case .progress: "Tab-Progress"
+            case .settings: "Tab-Settings"
             }
         }
     }
@@ -52,7 +53,12 @@ struct ContentView: View {
             ForEach(AppTab.allCases, id: \.self) { tab in
                 tabContent(for: tab)
                     .tabItem {
-                        Label(tab.rawValue, systemImage: tab.icon)
+                        Label {
+                            Text(tab.rawValue)
+                        } icon: {
+                            Image(tab.assetIcon)
+                                .renderingMode(.template)
+                        }
                     }
                     .tag(tab)
             }

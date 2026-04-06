@@ -56,9 +56,11 @@ struct TipWidgetEntryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                Image(systemName: "lighthouse.fill")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color(red: 0, green: 0.83, blue: 0.67))
+                Image("BrandIcon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 Text("Daily Detox Tip")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(Color(red: 0, green: 0.83, blue: 0.67))

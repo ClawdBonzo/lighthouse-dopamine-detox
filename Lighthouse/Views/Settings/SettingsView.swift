@@ -55,15 +55,12 @@ struct SettingsView: View {
     private var profileSection: some View {
         VStack(spacing: LHSpacing.md) {
             HStack(spacing: LHSpacing.md) {
-                ZStack {
-                    Circle()
-                        .fill(LHColor.teal.opacity(0.15))
-                        .frame(width: 56, height: 56)
-
-                    Text(String(profile?.displayName.prefix(1) ?? "?"))
-                        .font(LHFont.display(24))
-                        .foregroundStyle(LHColor.teal)
-                }
+                Image("BrandIcon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .shadow(color: LHColor.teal.opacity(0.2), radius: 8)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(profile?.displayName ?? "User")

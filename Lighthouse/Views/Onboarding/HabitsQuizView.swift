@@ -6,7 +6,15 @@ struct HabitsQuizView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: LHSpacing.xl) {
-                Spacer().frame(height: LHSpacing.lg)
+                Spacer().frame(height: LHSpacing.sm)
+
+                // Header illustration
+                Image("Onboarding-2")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 160)
+                    .clipShape(RoundedRectangle(cornerRadius: LHRadius.lg))
+                    .padding(.horizontal, LHSpacing.xl)
 
                 OnboardingProgress(current: 2, total: 5)
 

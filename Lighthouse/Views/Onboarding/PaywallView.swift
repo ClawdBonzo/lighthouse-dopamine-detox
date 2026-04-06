@@ -13,8 +13,15 @@ struct PaywallView: View {
             VStack(spacing: LHSpacing.lg) {
                 Spacer().frame(height: LHSpacing.md)
 
-                // Before/After transformation teaser
+                // Paywall hero illustration + brand
                 VStack(spacing: LHSpacing.md) {
+                    Image("Onboarding-5")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: LHRadius.xl))
+                        .padding(.horizontal, LHSpacing.lg)
+
                     Text("Your Focus\nTransformation Awaits")
                         .font(LHFont.display(28))
                         .foregroundStyle(LHColor.textPrimary)

@@ -6,31 +6,29 @@ struct SplashView: View {
     @State private var pulseGlow = false
 
     var body: some View {
-        VStack(spacing: LHSpacing.xxl) {
+        VStack(spacing: LHSpacing.xl) {
             Spacer()
 
-            // Lighthouse icon
-            ZStack {
-                // Outer glow
-                Circle()
-                    .fill(LHColor.teal.opacity(0.15))
-                    .frame(width: 180, height: 180)
-                    .scaleEffect(pulseGlow ? 1.1 : 0.9)
+            // Onboarding hero illustration
+            Image("Onboarding-1")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxHeight: 260)
+                .clipShape(RoundedRectangle(cornerRadius: LHRadius.xl))
+                .shadow(color: LHColor.teal.opacity(0.2), radius: 20, y: 8)
+                .padding(.horizontal, LHSpacing.xl)
+                .opacity(showContent ? 1 : 0)
+                .offset(y: showContent ? 0 : 30)
 
-                // Inner glow
-                Circle()
-                    .fill(LHColor.teal.opacity(0.25))
-                    .frame(width: 120, height: 120)
-
-                Image(systemName: "lighthouse.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(LHColor.teal)
-                    .shadow(color: LHColor.teal.opacity(0.6), radius: 20)
-            }
-            .opacity(showContent ? 1 : 0)
-            .offset(y: showContent ? 0 : 30)
-
+            // Brand icon + title
             VStack(spacing: LHSpacing.md) {
+                Image("BrandIcon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: LHColor.teal.opacity(0.3), radius: 12)
+
                 Text("Lighthouse")
                     .font(LHFont.display(38))
                     .foregroundStyle(LHColor.textPrimary)

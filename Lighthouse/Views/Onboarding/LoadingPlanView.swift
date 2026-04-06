@@ -16,20 +16,22 @@ struct LoadingPlanView: View {
         VStack(spacing: LHSpacing.xxl) {
             Spacer()
 
-            // Animated lighthouse beam
+            // Analyzing illustration + pulsing rings
             ZStack {
                 ForEach(0..<3, id: \.self) { ring in
                     Circle()
                         .stroke(LHColor.teal.opacity(0.1 + Double(ring) * 0.05), lineWidth: 2)
-                        .frame(width: CGFloat(100 + ring * 40), height: CGFloat(100 + ring * 40))
+                        .frame(width: CGFloat(140 + ring * 40), height: CGFloat(140 + ring * 40))
                         .scaleEffect(viewModel.loadingProgress > Double(ring) / 3.0 ? 1.0 : 0.5)
                         .opacity(viewModel.loadingProgress > Double(ring) / 3.0 ? 1.0 : 0.3)
                         .animation(.easeOut(duration: 0.6), value: viewModel.loadingProgress)
                 }
 
-                Image(systemName: "lighthouse.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(LHColor.teal)
+                Image("Onboarding-4")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
                     .shadow(color: LHColor.teal.opacity(0.5), radius: 15)
             }
 

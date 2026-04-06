@@ -54,10 +54,12 @@ struct StreakWidgetEntryView: View {
     }
 
     private var smallView: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "flame.fill")
-                .font(.system(size: 24))
-                .foregroundStyle(.orange)
+        VStack(spacing: 6) {
+            Image("BrandIcon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 32, height: 32)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
             Text("\(entry.streakCount)")
                 .font(.system(size: 36, weight: .bold, design: .rounded))
