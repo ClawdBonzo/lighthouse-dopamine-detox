@@ -1,4 +1,5 @@
 import SwiftUI
+import RevenueCat
 
 struct PaywallView: View {
     @Bindable var viewModel: OnboardingViewModel
@@ -124,13 +125,23 @@ struct PaywallView: View {
                 // CTA
                 GlowButton(title: "Start Free Trial", icon: "arrow.right") {
                     Task {
-                        if let package = subscriptionService.packages.first {
-                            let _ = await subscriptionService.purchase(package: package)
+                        let package = packageForSelectedPlan
+                        if let package {
+                            let success = await subscriptionService.purchase(package: package)
+                            if success { onContinue() }
+                        } else {
+                            onContinue()
                         }
-                        onContinue()
                     }
                 }
                 .padding(.horizontal, LHSpacing.lg)
+                .disabled(subscriptionService.isLoading)
+                .overlay {
+                    if subscriptionService.isLoading {
+                        ProgressView()
+                            .tint(LHColor.teal)
+                    }
+                }
 
                 // Skip + Restore
                 VStack(spacing: LHSpacing.md) {
@@ -172,6 +183,24 @@ struct PaywallView: View {
             withAnimation(.easeOut(duration: 0.5)) {
                 showContent = true
             }
+            Task {
+                await subscriptionService.loadOfferings()
+            }
+        }
+    }
+
+    /// Match the selected UI plan to the correct RevenueCat package
+    private var packageForSelectedPlan: Package? {
+        let packages = subscriptionService.packages
+        switch selectedPlan {
+        case .weekly:
+            return packages.first { $0.packageType == .weekly }
+        case .monthly:
+            return packages.first { $0.packageType == .monthly }
+        case .yearly:
+            return packages.first { $0.packageType == .annual }
+        case .lifetime:
+            return packages.first { $0.packageType == .lifetime }
         }
     }
 

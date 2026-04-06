@@ -25,7 +25,7 @@ enum SubscriptionPlan: String, CaseIterable, Identifiable {
         case .weekly: "$4.99/wk"
         case .monthly: "$9.99/mo"
         case .yearly: "$49.99/yr"
-        case .lifetime: "$99.99"
+        case .lifetime: "$79.99"
         }
     }
 
@@ -59,9 +59,8 @@ final class SubscriptionService {
     private init() {}
 
     func configure() {
-        // TODO: Replace with your actual RevenueCat API key
         Purchases.configure(
-            with: .builder(withAPIKey: "YOUR_REVENUECAT_API_KEY")
+            with: .builder(withAPIKey: "test_sFENrwZfHzvrXkRADvKBeBUBpDx")
                 .with(appUserID: nil)
                 .build()
         )
