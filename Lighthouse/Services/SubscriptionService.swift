@@ -59,8 +59,9 @@ final class SubscriptionService {
     private init() {}
 
     func configure() {
+        // TODO: Replace with live key before App Store release
         Purchases.configure(
-            with: .builder(withAPIKey: "test_sFENrwZfHzvrXkRADvKBeBUBpDx")
+            with: .builder(withAPIKey: "test_AFpuFmRxwiYCSJV0rgzxFqKjZDa")
                 .with(appUserID: nil)
                 .build()
         )
@@ -74,7 +75,7 @@ final class SubscriptionService {
     func checkSubscriptionStatus() async {
         do {
             let customerInfo = try await Purchases.shared.customerInfo()
-            isPremium = !customerInfo.entitlements.active.isEmpty
+            isPremium = customerInfo.entitlements["pro"]?.isActive == true
         } catch {
             print("Error checking subscription: \(error.localizedDescription)")
         }
@@ -99,7 +100,7 @@ final class SubscriptionService {
 
         do {
             let result = try await Purchases.shared.purchase(package: package)
-            isPremium = !result.customerInfo.entitlements.active.isEmpty
+            isPremium = result.customerInfo.entitlements["pro"]?.isActive == true
             return isPremium
         } catch {
             if let purchaseError = error as? RevenueCat.ErrorCode {
@@ -118,7 +119,7 @@ final class SubscriptionService {
 
         do {
             let customerInfo = try await Purchases.shared.restorePurchases()
-            isPremium = !customerInfo.entitlements.active.isEmpty
+            isPremium = customerInfo.entitlements["pro"]?.isActive == true
             return isPremium
         } catch {
             errorMessage = error.localizedDescription
