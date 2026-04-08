@@ -23,7 +23,7 @@ enum SubscriptionPlan: String, CaseIterable, Identifiable {
     var price: String {
         switch self {
         case .weekly: "$4.99/wk"
-        case .monthly: "$9.99/mo"
+        case .monthly: "$8.99/mo"
         case .yearly: "$49.99/yr"
         case .lifetime: "$79.99"
         }
