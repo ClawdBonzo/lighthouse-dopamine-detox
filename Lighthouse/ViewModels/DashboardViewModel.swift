@@ -94,10 +94,22 @@ final class DashboardViewModel {
         todayLog?.focusMinutes += challenge.durationMinutes
         profile?.totalFocusMinutes += challenge.durationMinutes
 
+        // Award XP
+        if let profile {
+            GamificationEngine.shared.awardChallengeXP(
+                difficulty: challenge.difficultyLabel,
+                profile: profile,
+                context: modelContext
+            )
+        }
+
         // Check if all challenges are completed → update streak
         if todayChallenges.allSatisfy(\.isCompleted) {
             todayLog?.didDetox = true
             profile?.updateStreak()
+            if let profile {
+                GamificationEngine.shared.awardStreakBonus(profile: profile, context: modelContext)
+            }
         }
 
         try? modelContext.save()
@@ -123,6 +135,16 @@ final class DashboardViewModel {
         session.complete()
         todayLog?.focusMinutes += session.actualMinutes
         profile?.totalFocusMinutes += session.actualMinutes
+
+        // Award XP
+        if let profile {
+            GamificationEngine.shared.awardFocusXP(
+                minutes: session.actualMinutes,
+                profile: profile,
+                context: modelContext
+            )
+        }
+
         activeFocusSession = nil
         showingFocusTimer = false
         stopTimer()

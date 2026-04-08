@@ -188,6 +188,7 @@ struct LogRow: View {
 struct AddLogSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Query private var profiles: [UserProfile]
     var existingLog: DailyLog?
 
     @State private var mood: Int = 3
@@ -324,15 +325,21 @@ struct AddLogSheet: View {
 
     private func saveLog() {
         let log = existingLog ?? DailyLog()
+        let isNew = existingLog == nil
         log.mood = mood
         log.energyLevel = energy
         log.screenTimeMinutes = screenTimeMinutes
         log.gratitudeNote = gratitude.isEmpty ? nil : gratitude
         log.reflectionNote = reflection.isEmpty ? nil : reflection
 
-        if existingLog == nil {
+        if isNew {
             modelContext.insert(log)
         }
         try? modelContext.save()
+
+        // Award XP for mood logging (new logs only)
+        if isNew, let profile = profiles.first {
+            GamificationEngine.shared.awardMoodLogXP(profile: profile, context: modelContext)
+        }
     }
 }

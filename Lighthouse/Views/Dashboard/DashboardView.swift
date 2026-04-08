@@ -5,6 +5,7 @@ struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = DashboardViewModel()
     @State private var showFocusPresets = false
+    @Query(filter: #Predicate<Quest> { !$0.isCompleted }) private var activeQuests: [Quest]
 
     var body: some View {
         NavigationStack {
@@ -39,6 +40,12 @@ struct DashboardView: View {
                         .overlay(Circle().stroke(LHColor.streak.opacity(0.3), lineWidth: 2))
                     }
                     .padding(.horizontal, LHSpacing.lg)
+
+                    // Level progress bar
+                    if let profile = viewModel.profile {
+                        LevelProgressView(profile: profile)
+                            .padding(.horizontal, LHSpacing.lg)
+                    }
 
                     // Stats row
                     HStack(spacing: LHSpacing.md) {
@@ -89,6 +96,25 @@ struct DashboardView: View {
                                 RoundedRectangle(cornerRadius: LHRadius.md)
                                     .stroke(LHColor.teal.opacity(0.3), lineWidth: 1)
                             )
+                        }
+                        .padding(.horizontal, LHSpacing.lg)
+                    }
+
+                    // Active quests preview (up to 2)
+                    if !activeQuests.isEmpty {
+                        VStack(alignment: .leading, spacing: LHSpacing.md) {
+                            HStack {
+                                Text("Active Quests")
+                                    .font(LHFont.headline(18))
+                                    .foregroundStyle(LHColor.textPrimary)
+                                Spacer()
+                                Text("\(activeQuests.count) active")
+                                    .font(LHFont.caption(13))
+                                    .foregroundStyle(LHColor.textTertiary)
+                            }
+                            ForEach(activeQuests.prefix(2)) { quest in
+                                QuestCardView(quest: quest)
+                            }
                         }
                         .padding(.horizontal, LHSpacing.lg)
                     }

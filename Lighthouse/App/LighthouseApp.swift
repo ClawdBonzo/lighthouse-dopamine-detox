@@ -15,6 +15,9 @@ struct LighthouseApp: App {
                 FocusSession.self,
                 FocusPreset.self,
                 DailyLog.self,
+                Badge.self,
+                Quest.self,
+                XPRecord.self,
             ])
             let modelConfiguration = ModelConfiguration(
                 schema: schema,

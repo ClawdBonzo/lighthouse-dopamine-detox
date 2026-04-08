@@ -29,6 +29,12 @@ final class UserProfile {
     var dailyReminderTime: Date?
     var hasCompletedOnboarding: Bool
 
+    // Gamification
+    var xp: Int = 0
+    var totalXPEarned: Int = 0
+    var questsCompleted: Int = 0
+    var totalChallengesCompleted: Int = 0
+
     init(
         displayName: String = "",
         dailyScreenTimeHours: Double = 4.0,

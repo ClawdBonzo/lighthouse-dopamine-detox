@@ -10,7 +10,7 @@ struct ContentView: View {
     enum AppTab: String, CaseIterable {
         case dashboard = "Dashboard"
         case log = "Log"
-        case streak = "Challenges"
+        case quests = "Quests"
         case progress = "Progress"
         case settings = "Settings"
 
@@ -19,17 +19,65 @@ struct ContentView: View {
             switch self {
             case .dashboard: "Tab-Dashboard"
             case .log: "Tab-DailyLogger"
-            case .streak: "Tab-Challenges"
+            case .quests: "Tab-Challenges"
             case .progress: "Tab-Progress"
             case .settings: "Tab-Settings"
             }
         }
     }
 
+    @State private var engine = GamificationEngine.shared
+
     var body: some View {
         Group {
             if hasCompletedOnboarding || profiles.first?.hasCompletedOnboarding == true {
-                mainTabView
+                ZStack {
+                    mainTabView
+
+                    // Level-up overlay
+                    if engine.showLevelUp, let data = engine.levelUpData {
+                        LevelUpOverlay(data: data) {
+                            engine.showLevelUp = false
+                        }
+                        .transition(.opacity)
+                        .zIndex(10)
+                    }
+
+                    // Badge unlock toast
+                    if engine.showBadgeUnlock, let badge = engine.newBadge {
+                        VStack {
+                            BadgeToast(badge: badge)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                            Spacer()
+                        }
+                        .zIndex(9)
+                        .animation(.spring(response: 0.4), value: engine.showBadgeUnlock)
+                    }
+
+                    // XP gain toast
+                    if engine.showXPGain {
+                        VStack {
+                            Spacer()
+                            HStack(spacing: 6) {
+                                Image(systemName: "bolt.fill")
+                                    .foregroundStyle(LHColor.gold)
+                                    .font(.system(size: 12))
+                                Text("+\(engine.recentXPGain) XP")
+                                    .font(LHFont.headline(13))
+                                    .foregroundStyle(LHColor.gold)
+                            }
+                            .padding(.horizontal, LHSpacing.md)
+                            .padding(.vertical, 8)
+                            .background(LHColor.surface)
+                            .clipShape(Capsule())
+                            .shadow(color: LHColor.gold.opacity(0.3), radius: 8)
+                            .padding(.bottom, 90)
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .zIndex(8)
+                        .animation(.spring(response: 0.3), value: engine.showXPGain)
+                    }
+                }
             } else {
                 OnboardingContainerView(
                     viewModel: OnboardingViewModel(),
@@ -91,8 +139,8 @@ struct ContentView: View {
             DashboardView()
         case .log:
             DailyLoggerView()
-        case .streak:
-            StreakCalendarView()
+        case .quests:
+            GamificationView()
         case .progress:
             ProgressChartsView()
         case .settings:
