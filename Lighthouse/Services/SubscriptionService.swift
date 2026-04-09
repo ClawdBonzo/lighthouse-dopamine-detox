@@ -77,24 +77,15 @@ final class SubscriptionService {
 
     func configure() {
         // ─────────────────────────────────────────────────────────────────────
-        // RevenueCat API Key
+        // RevenueCat SDK Key — Lighthouse project (ID: 986d74aa)
+        // Source: app.revenuecat.com/projects/986d74aa/api-keys
         //
-        // The RevenueCat project for Lighthouse has not yet been created in the
-        // dashboard (app.revenuecat.com). Once the project is set up:
-        //
-        //   1. Go to app.revenuecat.com → Your Project → API Keys
-        //   2. Copy the iOS Public Key  (format: appl_XXXXXXXXXXXXXXXXXXXX)
-        //   3. Replace the placeholder below with that key
-        //   4. Delete the #if DEBUG guard so the live key is always used
-        //
-        // The test key below ONLY works in sandbox — it will NOT process real
-        // purchases in production. Do NOT ship with this key.
+        // "Test Store" public SDK key — valid for StoreKit sandbox & TestFlight.
+        // Before App Store submission: add a production iOS app in RevenueCat
+        // (Apps & Providers → + New App → App Store) to get an appl_ key,
+        // then replace this value.
         // ─────────────────────────────────────────────────────────────────────
-        #if DEBUG
-        let rcKey = "test_AFpuFmRxwiYCSJV0rgzxFqKjZDa"
-        #else
-        let rcKey = "REPLACE_WITH_PRODUCTION_KEY_appl_XXXX" // <- swap before release
-        #endif
+        let rcKey = "test_sFENrwZfHzvrXkRADvKBeBUBpDx"
 
         Purchases.configure(
             with: .builder(withAPIKey: rcKey)
