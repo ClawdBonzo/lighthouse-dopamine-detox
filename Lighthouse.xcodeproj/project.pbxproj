@@ -37,18 +37,22 @@
 		7429F42720E363CC12FEB067 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC5A0045B3735E65022EEC4 /* ContentView.swift */; };
 		7780C492C316B955A7E09E9F /* ChallengeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 826E2282D3883C3D63CFAD32 /* ChallengeEngine.swift */; };
 		836806D1E9FD5E15A41A4619 /* ScreenTimeLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A621AC7CBF85B961EF4D997 /* ScreenTimeLog.swift */; };
+		84D08B6C9682C8AD605E3400 /* LighthouseParticleBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BF12AEF5A45B862B5562B4 /* LighthouseParticleBackground.swift */; };
 		8850D970A007DDFC2A5A7C7B /* GamificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A551FFB302427126EDE1C7 /* GamificationModels.swift */; };
 		91FC288D6F1ADC47EB824E2C /* DailyLoggerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3369203BD1A567B42FD60E5 /* DailyLoggerView.swift */; };
 		94D23E08D5A951EB0713BD75 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D653A90F9733C37615643B /* OnboardingContainerView.swift */; };
 		9988C4539A175F863E060193 /* DetoxChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E82C4CE9263B562A8369D41F /* DetoxChallenge.swift */; };
 		A236DBA036FC9C7A1EEC5365 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC148F65D98AA50033913045 /* DashboardViewModel.swift */; };
+		AA3BD07BC9CC94943385CFC0 /* ClearMindShareCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7257B6DC5602BBF4C6704E5A /* ClearMindShareCard.swift */; };
 		AE14635DEFAAA0E3AC6155EA /* LighthouseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BA12CB84836CC560B1AF4 /* LighthouseApp.swift */; };
 		BE488AAF2B55AFBA5EE53F71 /* HabitsQuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 605C2385424C503B62C5AE09 /* HabitsQuizView.swift */; };
+		C909EA86FAC1141DABFEBA37 /* BrainResetOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B4EF771B4674C85A6108F /* BrainResetOverlay.swift */; };
 		CFF9E1386D628DD1ACFB2890 /* AppSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8B54A2562A2E99D23906353 /* AppSelectionView.swift */; };
 		D9F3BA61924F266443C93610 /* StatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA39079782397539B010012 /* StatCard.swift */; };
 		DAD5728F26249BDFB88DA807 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = FD9E8B1AEFFD6A9D1D30C192 /* RevenueCat */; };
 		E150BDD72CB72705B2077CB4 /* TipWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCE9370147B71CF28F427E9 /* TipWidget.swift */; };
 		E36EE56956FB0D6D97663029 /* GlowButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E61BE60634F7B903BA596AC /* GlowButton.swift */; };
+		F01C4764575974249E9D22DC /* FocusCelebrationOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F30AE90FC675DDF9664E1D64 /* FocusCelebrationOverlay.swift */; };
 		F04203964B0AC995710BBB6A /* FocusPresetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5E76CA01DC7CDBAF909B6FD /* FocusPresetsView.swift */; };
 		F30B4CE9EE16FA0A98B1BB56 /* AnimatedRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61ADE668159AE40E2AFFCC41 /* AnimatedRing.swift */; };
 		F5CEEC814B1251937130ABB6 /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84F91AE9EBD0EFFE7855178 /* FocusSession.swift */; };
@@ -101,6 +105,7 @@
 		60FD8C07340DE73277E2F2D2 /* GamificationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamificationEngine.swift; sourceTree = "<group>"; };
 		61ADE668159AE40E2AFFCC41 /* AnimatedRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedRing.swift; sourceTree = "<group>"; };
 		6AF1A2F04B4A8E55CD3F515D /* ProgressChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressChartsView.swift; sourceTree = "<group>"; };
+		7257B6DC5602BBF4C6704E5A /* ClearMindShareCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearMindShareCard.swift; sourceTree = "<group>"; };
 		766A5D1011887D616556A8A2 /* DailyLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLog.swift; sourceTree = "<group>"; };
 		796FC07EF2189114958D269C /* OnboardingBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBackground.swift; sourceTree = "<group>"; };
 		826E2282D3883C3D63CFAD32 /* ChallengeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeEngine.swift; sourceTree = "<group>"; };
@@ -114,6 +119,7 @@
 		A90CCBEB0F66B56472E5C250 /* StreakCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakCalendarView.swift; sourceTree = "<group>"; };
 		B33DAB2C3F23B80D553271B6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B4EBCC59545A4328A515F86B /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		BB0B4EF771B4674C85A6108F /* BrainResetOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrainResetOverlay.swift; sourceTree = "<group>"; };
 		BFA39079782397539B010012 /* StatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCard.swift; sourceTree = "<group>"; };
 		CA8479702AFBE2F36F79875B /* LevelUpOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelUpOverlay.swift; sourceTree = "<group>"; };
 		CC0C6BF0090D773573E1FAA6 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -126,8 +132,10 @@
 		E82C4CE9263B562A8369D41F /* DetoxChallenge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetoxChallenge.swift; sourceTree = "<group>"; };
 		E8B54A2562A2E99D23906353 /* AppSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSelectionView.swift; sourceTree = "<group>"; };
 		EBE5906DAD546913FA349E5F /* PDFExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExportService.swift; sourceTree = "<group>"; };
+		F0BF12AEF5A45B862B5562B4 /* LighthouseParticleBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LighthouseParticleBackground.swift; sourceTree = "<group>"; };
 		F229B76D47EA5F1B1C05E59C /* Lighthouse.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Lighthouse.entitlements; sourceTree = "<group>"; };
 		F27261E920BC3C8D49167889 /* QuestCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestCardView.swift; sourceTree = "<group>"; };
+		F30AE90FC675DDF9664E1D64 /* FocusCelebrationOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusCelebrationOverlay.swift; sourceTree = "<group>"; };
 		F6BB272B0C83C64D516B5F7E /* GamificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamificationView.swift; sourceTree = "<group>"; };
 		F716230E56920A13C7F34652 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		FC148F65D98AA50033913045 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
@@ -183,7 +191,11 @@
 			isa = PBXGroup;
 			children = (
 				61ADE668159AE40E2AFFCC41 /* AnimatedRing.swift */,
+				BB0B4EF771B4674C85A6108F /* BrainResetOverlay.swift */,
+				7257B6DC5602BBF4C6704E5A /* ClearMindShareCard.swift */,
+				F30AE90FC675DDF9664E1D64 /* FocusCelebrationOverlay.swift */,
 				2E61BE60634F7B903BA596AC /* GlowButton.swift */,
+				F0BF12AEF5A45B862B5562B4 /* LighthouseParticleBackground.swift */,
 				BFA39079782397539B010012 /* StatCard.swift */,
 			);
 			path = Components;
@@ -456,7 +468,9 @@
 				F30B4CE9EE16FA0A98B1BB56 /* AnimatedRing.swift in Sources */,
 				CFF9E1386D628DD1ACFB2890 /* AppSelectionView.swift in Sources */,
 				FED126BE37868557EA217868 /* BadgeGridView.swift in Sources */,
+				C909EA86FAC1141DABFEBA37 /* BrainResetOverlay.swift in Sources */,
 				7780C492C316B955A7E09E9F /* ChallengeEngine.swift in Sources */,
+				AA3BD07BC9CC94943385CFC0 /* ClearMindShareCard.swift in Sources */,
 				6D78850223750D869CC99613 /* CommitmentView.swift in Sources */,
 				7429F42720E363CC12FEB067 /* ContentView.swift in Sources */,
 				5056D1EF4F997EF63B885239 /* DailyLog.swift in Sources */,
@@ -465,6 +479,7 @@
 				A236DBA036FC9C7A1EEC5365 /* DashboardViewModel.swift in Sources */,
 				1EDB565EA3B935C9F268920B /* Date+Extensions.swift in Sources */,
 				9988C4539A175F863E060193 /* DetoxChallenge.swift in Sources */,
+				F01C4764575974249E9D22DC /* FocusCelebrationOverlay.swift in Sources */,
 				64DEBBF94B54152658E127B2 /* FocusPreset.swift in Sources */,
 				F04203964B0AC995710BBB6A /* FocusPresetsView.swift in Sources */,
 				F5CEEC814B1251937130ABB6 /* FocusSession.swift in Sources */,
@@ -476,6 +491,7 @@
 				2FE39A3DC9432976F248F823 /* LevelProgressView.swift in Sources */,
 				7242DE595D2B0A104CA80A2F /* LevelUpOverlay.swift in Sources */,
 				AE14635DEFAAA0E3AC6155EA /* LighthouseApp.swift in Sources */,
+				84D08B6C9682C8AD605E3400 /* LighthouseParticleBackground.swift in Sources */,
 				1616E9E82FA19B478748F87E /* LoadingPlanView.swift in Sources */,
 				6C332C398BFE3F7FF6AC8324 /* NameInputView.swift in Sources */,
 				06979BCF919AFDE607314417 /* OnboardingBackground.swift in Sources */,

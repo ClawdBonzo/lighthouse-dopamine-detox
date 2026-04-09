@@ -6,15 +6,26 @@ struct StatCard: View {
     let icon: String
     let color: Color
 
+    @State private var appeared = false
+
     var body: some View {
         VStack(spacing: LHSpacing.sm) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundStyle(color)
+            // Icon with glow
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                    .shadow(color: color.opacity(0.25), radius: 8)
+
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(color)
+            }
 
             Text(value)
                 .font(LHFont.headline(18))
                 .foregroundStyle(LHColor.textPrimary)
+                .shadow(color: color.opacity(0.3), radius: 4)
 
             Text(title)
                 .font(LHFont.caption(11))
@@ -23,11 +34,31 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, LHSpacing.md)
-        .background(LHColor.card)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: LHRadius.md).fill(LHColor.card)
+                RoundedRectangle(cornerRadius: LHRadius.md).fill(LHColor.cardGlassGradient)
+            }
+        )
         .clipShape(RoundedRectangle(cornerRadius: LHRadius.md))
         .overlay(
             RoundedRectangle(cornerRadius: LHRadius.md)
-                .stroke(color.opacity(0.15), lineWidth: 1)
+                .stroke(
+                    LinearGradient(
+                        colors: [color.opacity(0.35), color.opacity(0.08)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
+        .shadow(color: color.opacity(0.1), radius: 8, y: 4)
+        .scaleEffect(appeared ? 1 : 0.9)
+        .opacity(appeared ? 1 : 0)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                appeared = true
+            }
+        }
     }
 }

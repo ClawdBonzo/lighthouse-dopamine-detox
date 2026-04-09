@@ -12,6 +12,13 @@ final class DashboardViewModel {
     var showingFocusTimer = false
     var focusTimeRemaining: TimeInterval = 0
 
+    // Overlay triggers
+    var showBrainReset = false
+    var showFocusCelebration = false
+    var showShareCard = false
+    var lastFocusMinutes: Int = 0
+    var lastFocusXP: Int = 0
+
     private var focusTimer: Timer?
 
     var currentStreak: Int {
@@ -103,13 +110,14 @@ final class DashboardViewModel {
             )
         }
 
-        // Check if all challenges are completed → update streak
+        // Check if all challenges are completed → update streak + show brain reset
         if todayChallenges.allSatisfy(\.isCompleted) {
             todayLog?.didDetox = true
             profile?.updateStreak()
             if let profile {
                 GamificationEngine.shared.awardStreakBonus(profile: profile, context: modelContext)
             }
+            showBrainReset = true
         }
 
         try? modelContext.save()
@@ -136,8 +144,12 @@ final class DashboardViewModel {
         todayLog?.focusMinutes += session.actualMinutes
         profile?.totalFocusMinutes += session.actualMinutes
 
+        lastFocusMinutes = session.actualMinutes
+        var xpAwarded = 0
+
         // Award XP
         if let profile {
+            xpAwarded = session.actualMinutes >= 25 ? 40 : 20
             GamificationEngine.shared.awardFocusXP(
                 minutes: session.actualMinutes,
                 profile: profile,
@@ -145,10 +157,16 @@ final class DashboardViewModel {
             )
         }
 
+        lastFocusXP = xpAwarded
         activeFocusSession = nil
         showingFocusTimer = false
         stopTimer()
         try? modelContext.save()
+
+        // Show celebration if session was meaningful
+        if lastFocusMinutes >= 5 {
+            showFocusCelebration = true
+        }
     }
 
     private func startTimer() {
