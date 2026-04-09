@@ -4,10 +4,10 @@ import RevenueCat
 // MARK: - Subscription Plans
 
 enum SubscriptionPlan: String, CaseIterable, Identifiable {
-    case weekly = "lighthouse_weekly"
-    case monthly = "lighthouse_monthly"
-    case yearly = "lighthouse_yearly"
-    case lifetime = "lighthouse_lifetime"
+    case weekly = "com.clawdbonzo.lighthouse.weekly"
+    case monthly = "com.clawdbonzo.lighthouse.monthly"
+    case yearly = "com.clawdbonzo.lighthouse.yearly"
+    case lifetime = "com.clawdbonzo.lighthouse.lifetime"
 
     var id: String { rawValue }
 
@@ -22,25 +22,42 @@ enum SubscriptionPlan: String, CaseIterable, Identifiable {
 
     var price: String {
         switch self {
-        case .weekly: "$4.99/wk"
-        case .monthly: "$8.99/mo"
-        case .yearly: "$49.99/yr"
-        case .lifetime: "$79.99"
+        case .weekly: "$4.99/week"
+        case .monthly: "$8.99/month"
+        case .yearly: "$49.99/year"
+        case .lifetime: "$79.99 once"
         }
     }
 
-    var savings: String? {
+    var pricePerMonth: String? {
+        switch self {
+        case .weekly: nil
+        case .monthly: nil
+        case .yearly: "~$4.17/month"
+        case .lifetime: nil
+        }
+    }
+
+    /// Plans that include a 3-day free trial
+    var hasTrial: Bool {
+        switch self {
+        case .weekly: false
+        case .monthly: true
+        case .yearly: true
+        case .lifetime: false
+        }
+    }
+
+    var badgeText: String? {
         switch self {
         case .weekly: nil
         case .monthly: "BEST VALUE"
-        case .yearly: "Save 58%"
+        case .yearly: "Save 54%"
         case .lifetime: "Pay Once"
         }
     }
 
-    var isBestValue: Bool {
-        self == .monthly
-    }
+    var isBestValue: Bool { self == .monthly }
 }
 
 // MARK: - Subscription Service

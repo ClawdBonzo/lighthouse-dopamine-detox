@@ -8,7 +8,8 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         ZStack {
-            LHColor.background.ignoresSafeArea()
+            OnboardingBackground()
+                .ignoresSafeArea()
 
             switch viewModel.currentStep {
             case .splash:

@@ -20,20 +20,13 @@ struct SplashView: View {
                 .opacity(showContent ? 1 : 0)
                 .offset(y: showContent ? 0 : 30)
 
-            // Brand icon + title
-            VStack(spacing: LHSpacing.md) {
-                Image("BrandIcon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 64, height: 64)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: LHColor.teal.opacity(0.3), radius: 12)
-
+            // Brand title
+            VStack(spacing: LHSpacing.sm) {
                 Text("Lighthouse")
                     .font(LHFont.display(38))
                     .foregroundStyle(LHColor.textPrimary)
 
-                Text("Your Dopamine Detox\nCompanion")
+                Text("Your Dopamine Detox Companion")
                     .font(LHFont.headline(18))
                     .foregroundStyle(LHColor.textSecondary)
                     .multilineTextAlignment(.center)

@@ -7,123 +7,43 @@ struct PaywallView: View {
 
     @State private var selectedPlan: SubscriptionPlan = .monthly
     @State private var showContent = false
+    @State private var glowPulse = false
     private let subscriptionService = SubscriptionService.shared
 
+    private var ctaTitle: String {
+        switch selectedPlan {
+        case .monthly, .yearly: return "Start 3-Day Free Trial"
+        case .weekly: return "Subscribe Weekly"
+        case .lifetime: return "Get Lifetime Access"
+        }
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: LHSpacing.lg) {
-                Spacer().frame(height: LHSpacing.md)
+        VStack(spacing: 0) {
+            // ── Compact Header ──────────────────────────────────────
+            paywallHeader
+                .padding(.top, LHSpacing.md)
 
-                // Paywall hero illustration + brand
-                VStack(spacing: LHSpacing.md) {
-                    Image("Onboarding-5")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 180)
-                        .clipShape(RoundedRectangle(cornerRadius: LHRadius.xl))
-                        .padding(.horizontal, LHSpacing.lg)
+            Spacer().frame(height: LHSpacing.md)
 
-                    Text("Your Focus\nTransformation Awaits")
-                        .font(LHFont.display(28))
-                        .foregroundStyle(LHColor.textPrimary)
-                        .multilineTextAlignment(.center)
-
-                    // Before/After comparison
-                    HStack(spacing: LHSpacing.md) {
-                        // Before
-                        VStack(spacing: LHSpacing.sm) {
-                            Text("BEFORE")
-                                .font(LHFont.caption(11))
-                                .foregroundStyle(LHColor.streak)
-
-                            VStack(spacing: 6) {
-                                statRow("Screen Time", "\(Int(viewModel.dailyScreenTime))h+")
-                                statRow("Focus", "Scattered")
-                                statRow("Energy", "Drained")
-                            }
-                        }
-                        .padding(LHSpacing.md)
-                        .frame(maxWidth: .infinity)
-                        .background(LHColor.streak.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: LHRadius.md))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: LHRadius.md)
-                                .stroke(LHColor.streak.opacity(0.2), lineWidth: 1)
-                        )
-
-                        Image(systemName: "arrow.right")
-                            .foregroundStyle(LHColor.teal)
-                            .font(.system(size: 20, weight: .bold))
-
-                        // After
-                        VStack(spacing: LHSpacing.sm) {
-                            Text("AFTER 30 DAYS")
-                                .font(LHFont.caption(11))
-                                .foregroundStyle(LHColor.teal)
-
-                            VStack(spacing: 6) {
-                                statRow("Screen Time", "-40%")
-                                statRow("Focus", "Laser sharp")
-                                statRow("Energy", "Restored")
-                            }
-                        }
-                        .padding(LHSpacing.md)
-                        .frame(maxWidth: .infinity)
-                        .background(LHColor.teal.opacity(0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: LHRadius.md))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: LHRadius.md)
-                                .stroke(LHColor.teal.opacity(0.3), lineWidth: 1)
-                        )
-                    }
-                    .padding(.horizontal, LHSpacing.lg)
-                }
-
-                // Free trial badge
-                HStack(spacing: LHSpacing.sm) {
-                    Image(systemName: "gift.fill")
-                        .foregroundStyle(LHColor.gold)
-                    Text("Start with 3-day FREE trial")
-                        .font(LHFont.headline(15))
-                        .foregroundStyle(LHColor.gold)
-                }
-                .padding(.horizontal, LHSpacing.lg)
-                .padding(.vertical, LHSpacing.sm)
-                .background(LHColor.gold.opacity(0.12))
-                .clipShape(Capsule())
-
-                // Plan options
-                VStack(spacing: LHSpacing.sm) {
-                    ForEach(SubscriptionPlan.allCases) { plan in
-                        PlanCard(
-                            plan: plan,
-                            isSelected: selectedPlan == plan
-                        ) {
-                            withAnimation(.spring(response: 0.3)) {
-                                selectedPlan = plan
-                            }
+            // ── Plan Cards ──────────────────────────────────────────
+            VStack(spacing: 8) {
+                ForEach(SubscriptionPlan.allCases) { plan in
+                    PaywallPlanCard(plan: plan, isSelected: selectedPlan == plan) {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) {
+                            selectedPlan = plan
                         }
                     }
                 }
-                .padding(.horizontal, LHSpacing.lg)
+            }
+            .padding(.horizontal, LHSpacing.md)
 
-                // Premium features
-                VStack(alignment: .leading, spacing: LHSpacing.md) {
-                    Text("Everything you get:")
-                        .font(LHFont.headline(16))
-                        .foregroundStyle(LHColor.textSecondary)
+            Spacer()
 
-                    featureRow("Unlimited daily challenges")
-                    featureRow("Advanced progress analytics")
-                    featureRow("Custom focus presets")
-                    featureRow("PDF progress reports")
-                    featureRow("Home screen widgets")
-                    featureRow("Priority support")
-                }
-                .padding(.horizontal, LHSpacing.lg)
-
-                // CTA
-                GlowButton(title: "Start Free Trial", icon: "arrow.right") {
+            // ── CTA + Footer ────────────────────────────────────────
+            VStack(spacing: 10) {
+                // Main CTA
+                Button {
                     Task {
                         let package = packageForSelectedPlan
                         if let package {
@@ -133,154 +53,243 @@ struct PaywallView: View {
                             onContinue()
                         }
                     }
-                }
-                .padding(.horizontal, LHSpacing.lg)
-                .disabled(subscriptionService.isLoading)
-                .overlay {
-                    if subscriptionService.isLoading {
-                        ProgressView()
-                            .tint(LHColor.teal)
-                    }
-                }
+                } label: {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: LHRadius.lg)
+                            .fill(
+                                LinearGradient(
+                                    colors: [LHColor.teal, LHColor.tealDim],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .shadow(color: LHColor.teal.opacity(glowPulse ? 0.5 : 0.3), radius: glowPulse ? 16 : 10, y: 4)
 
-                // Skip + Restore
-                VStack(spacing: LHSpacing.md) {
-                    Button("Continue with limited access") {
-                        onContinue()
-                    }
-                    .font(LHFont.caption(14))
-                    .foregroundStyle(LHColor.textTertiary)
-
-                    Button("Restore Purchases") {
-                        Task {
-                            let _ = await subscriptionService.restorePurchases()
+                        if subscriptionService.isLoading {
+                            ProgressView().tint(.white)
+                        } else {
+                            HStack(spacing: 8) {
+                                Text(ctaTitle)
+                                    .font(LHFont.headline(16))
+                                    .foregroundStyle(.white)
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            }
                         }
                     }
-                    .font(LHFont.caption(13))
-                    .foregroundStyle(LHColor.textMuted)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                }
+                .disabled(subscriptionService.isLoading)
 
-                    // Legal
-                    Text("Cancel anytime. Recurring billing after trial.")
-                        .font(LHFont.caption(11))
+                // Legal note
+                if selectedPlan.hasTrial {
+                    Text("3-day free trial, then \(selectedPlan.price). Cancel anytime.")
+                        .font(LHFont.caption(10))
                         .foregroundStyle(LHColor.textMuted)
                         .multilineTextAlignment(.center)
-
-                    HStack(spacing: LHSpacing.md) {
-                        Link("Terms", destination: URL(string: "https://example.com/terms")!)
-                        Text("·").foregroundStyle(LHColor.textMuted)
-                        Link("Privacy", destination: URL(string: "https://example.com/privacy")!)
-                    }
-                    .font(LHFont.caption(11))
-                    .foregroundStyle(LHColor.textMuted)
+                } else {
+                    Text("No trial · \(selectedPlan.price). Cancel anytime.")
+                        .font(LHFont.caption(10))
+                        .foregroundStyle(LHColor.textMuted)
+                        .multilineTextAlignment(.center)
                 }
 
-                Spacer().frame(height: LHSpacing.lg)
+                // Skip / Restore / Links row
+                HStack(spacing: 16) {
+                    Button("Skip") { onContinue() }
+                        .font(LHFont.caption(12))
+                        .foregroundStyle(LHColor.textTertiary)
+
+                    Text("·").foregroundStyle(LHColor.textMuted)
+
+                    Button("Restore") {
+                        Task { let _ = await subscriptionService.restorePurchases() }
+                    }
+                    .font(LHFont.caption(12))
+                    .foregroundStyle(LHColor.textTertiary)
+
+                    Text("·").foregroundStyle(LHColor.textMuted)
+
+                    Link("Terms", destination: URL(string: "https://clawdbonzo.com/terms")!)
+                        .font(LHFont.caption(12))
+                        .foregroundStyle(LHColor.textTertiary)
+
+                    Text("·").foregroundStyle(LHColor.textMuted)
+
+                    Link("Privacy", destination: URL(string: "https://clawdbonzo.com/privacy")!)
+                        .font(LHFont.caption(12))
+                        .foregroundStyle(LHColor.textTertiary)
+                }
             }
+            .padding(.horizontal, LHSpacing.lg)
+            .padding(.bottom, LHSpacing.md)
         }
-        .scrollIndicators(.hidden)
         .opacity(showContent ? 1 : 0)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showContent = true
+            withAnimation(.easeOut(duration: 0.4)) { showContent = true }
+            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) { glowPulse = true }
+            Task { await subscriptionService.loadOfferings() }
+        }
+    }
+
+    // MARK: - Compact Header
+
+    private var paywallHeader: some View {
+        VStack(spacing: 6) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(LHColor.teal.opacity(0.12))
+                    .frame(width: 56, height: 56)
+                Image("BrandIcon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            Task {
-                await subscriptionService.loadOfferings()
+
+            Text("Unlock Lighthouse Pro")
+                .font(LHFont.display(22))
+                .foregroundStyle(LHColor.textPrimary)
+
+            // Feature pills
+            HStack(spacing: 8) {
+                featurePill("flame.fill", "Streaks")
+                featurePill("brain.head.profile", "Focus")
+                featurePill("chart.line.uptrend.xyaxis", "Progress")
             }
         }
     }
 
-    /// Match the selected UI plan to the correct RevenueCat package
+    private func featurePill(_ icon: String, _ label: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+                .foregroundStyle(LHColor.teal)
+            Text(label)
+                .font(LHFont.caption(11))
+                .foregroundStyle(LHColor.textSecondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(LHColor.surface)
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(Color.white.opacity(0.07), lineWidth: 1))
+    }
+
+    // MARK: - RevenueCat Package Matching
+
     private var packageForSelectedPlan: Package? {
         let packages = subscriptionService.packages
         switch selectedPlan {
-        case .weekly:
-            return packages.first { $0.packageType == .weekly }
-        case .monthly:
-            return packages.first { $0.packageType == .monthly }
-        case .yearly:
-            return packages.first { $0.packageType == .annual }
-        case .lifetime:
-            return packages.first { $0.packageType == .lifetime }
-        }
-    }
-
-    private func statRow(_ label: String, _ value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(LHFont.caption(12))
-                .foregroundStyle(LHColor.textTertiary)
-            Spacer()
-            Text(value)
-                .font(LHFont.caption(12))
-                .foregroundStyle(LHColor.textPrimary)
-        }
-    }
-
-    private func featureRow(_ text: String) -> some View {
-        HStack(spacing: LHSpacing.sm) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(LHColor.teal)
-                .font(.system(size: 16))
-            Text(text)
-                .font(LHFont.body(14))
-                .foregroundStyle(LHColor.textSecondary)
+        case .weekly:   return packages.first { $0.packageType == .weekly }
+        case .monthly:  return packages.first { $0.packageType == .monthly }
+        case .yearly:   return packages.first { $0.packageType == .annual }
+        case .lifetime: return packages.first { $0.packageType == .lifetime }
         }
     }
 }
 
 // MARK: - Plan Card
 
-struct PlanCard: View {
+struct PaywallPlanCard: View {
     let plan: SubscriptionPlan
     let isSelected: Bool
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
-            HStack {
+            HStack(spacing: 12) {
+                // Radio button
+                ZStack {
+                    Circle()
+                        .stroke(
+                            isSelected
+                                ? (plan.isBestValue ? LHColor.gold : LHColor.teal)
+                                : Color.white.opacity(0.2),
+                            lineWidth: 2
+                        )
+                        .frame(width: 20, height: 20)
+                    if isSelected {
+                        Circle()
+                            .fill(plan.isBestValue ? LHColor.gold : LHColor.teal)
+                            .frame(width: 11, height: 11)
+                    }
+                }
+
+                // Plan info
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: LHSpacing.sm) {
+                    HStack(spacing: 6) {
                         Text(plan.displayName)
-                            .font(LHFont.headline(16))
+                            .font(LHFont.headline(15))
                             .foregroundStyle(LHColor.textPrimary)
 
-                        if let savings = plan.savings {
-                            Text(savings)
-                                .font(LHFont.caption(10))
+                        if let badge = plan.badgeText {
+                            Text(badge)
+                                .font(.system(size: 9, weight: .bold, design: .rounded))
                                 .foregroundStyle(plan.isBestValue ? LHColor.background : LHColor.teal)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(plan.isBestValue ? LHColor.teal : LHColor.teal.opacity(0.15))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(plan.isBestValue ? LHColor.gold : LHColor.teal.opacity(0.2))
                                 .clipShape(Capsule())
                         }
                     }
 
-                    Text(plan.price)
-                        .font(LHFont.body(14))
-                        .foregroundStyle(LHColor.textSecondary)
+                    HStack(spacing: 6) {
+                        Text(plan.price)
+                            .font(LHFont.body(13))
+                            .foregroundStyle(LHColor.textSecondary)
+
+                        if let perMonth = plan.pricePerMonth {
+                            Text("·")
+                                .foregroundStyle(LHColor.textMuted)
+                            Text(perMonth)
+                                .font(LHFont.caption(11))
+                                .foregroundStyle(LHColor.textTertiary)
+                        }
+                    }
                 }
 
                 Spacer()
 
-                ZStack {
-                    Circle()
-                        .stroke(isSelected ? LHColor.teal : LHColor.textMuted, lineWidth: 2)
-                        .frame(width: 24, height: 24)
-
-                    if isSelected {
-                        Circle()
-                            .fill(LHColor.teal)
-                            .frame(width: 14, height: 14)
-                    }
+                // Trial badge
+                if plan.hasTrial {
+                    Text("3-day trial")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(LHColor.gold)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(LHColor.gold.opacity(0.12))
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(LHColor.gold.opacity(0.3), lineWidth: 1))
                 }
             }
-            .padding(LHSpacing.md)
-            .background(isSelected ? LHColor.teal.opacity(0.08) : LHColor.surface)
-            .clipShape(RoundedRectangle(cornerRadius: LHRadius.md))
-            .overlay(
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background {
+                if plan.isBestValue && isSelected {
+                    RoundedRectangle(cornerRadius: LHRadius.md)
+                        .fill(LHColor.gold.opacity(0.07))
+                } else if isSelected {
+                    RoundedRectangle(cornerRadius: LHRadius.md)
+                        .fill(LHColor.teal.opacity(0.07))
+                } else {
+                    RoundedRectangle(cornerRadius: LHRadius.md)
+                        .fill(LHColor.surface)
+                }
+            }
+            .overlay {
                 RoundedRectangle(cornerRadius: LHRadius.md)
-                    .stroke(isSelected ? LHColor.teal.opacity(0.5) : Color.white.opacity(0.06), lineWidth: isSelected ? 2 : 1)
-            )
+                    .stroke(
+                        isSelected
+                            ? (plan.isBestValue ? LHColor.gold.opacity(0.6) : LHColor.teal.opacity(0.5))
+                            : Color.white.opacity(0.06),
+                        lineWidth: isSelected ? 1.5 : 1
+                    )
+            }
         }
+        .buttonStyle(.plain)
     }
 }
