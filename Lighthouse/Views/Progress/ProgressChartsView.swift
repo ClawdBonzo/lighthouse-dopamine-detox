@@ -22,7 +22,9 @@ struct ProgressChartsView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ZStack {
+                LighthouseParticleBackground().ignoresSafeArea()
+                ScrollView {
                 VStack(spacing: LHSpacing.lg) {
                     // Time range picker
                     Picker("Range", selection: $selectedTimeRange) {
@@ -50,6 +52,7 @@ struct ProgressChartsView: View {
                 .padding(.top, LHSpacing.md)
             }
             .scrollIndicators(.hidden)
+            } // ZStack
             .background(LHColor.background)
             .navigationTitle("Progress")
             .navigationBarTitleDisplayMode(.large)

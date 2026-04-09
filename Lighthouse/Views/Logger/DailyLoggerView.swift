@@ -8,7 +8,9 @@ struct DailyLoggerView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ZStack {
+                LighthouseParticleBackground().ignoresSafeArea()
+                ScrollView {
                 VStack(spacing: LHSpacing.lg) {
                     // Today's log card
                     if let todayLog = todayLog {
@@ -55,6 +57,7 @@ struct DailyLoggerView: View {
                 .padding(.top, LHSpacing.md)
             }
             .scrollIndicators(.hidden)
+            } // ZStack
             .background(LHColor.background)
             .navigationTitle("Daily Log")
             .navigationBarTitleDisplayMode(.large)

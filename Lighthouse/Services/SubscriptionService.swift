@@ -76,9 +76,28 @@ final class SubscriptionService {
     private init() {}
 
     func configure() {
-        // TODO: Replace with live key before App Store release
+        // ─────────────────────────────────────────────────────────────────────
+        // RevenueCat API Key
+        //
+        // The RevenueCat project for Lighthouse has not yet been created in the
+        // dashboard (app.revenuecat.com). Once the project is set up:
+        //
+        //   1. Go to app.revenuecat.com → Your Project → API Keys
+        //   2. Copy the iOS Public Key  (format: appl_XXXXXXXXXXXXXXXXXXXX)
+        //   3. Replace the placeholder below with that key
+        //   4. Delete the #if DEBUG guard so the live key is always used
+        //
+        // The test key below ONLY works in sandbox — it will NOT process real
+        // purchases in production. Do NOT ship with this key.
+        // ─────────────────────────────────────────────────────────────────────
+        #if DEBUG
+        let rcKey = "test_AFpuFmRxwiYCSJV0rgzxFqKjZDa"
+        #else
+        let rcKey = "REPLACE_WITH_PRODUCTION_KEY_appl_XXXX" // <- swap before release
+        #endif
+
         Purchases.configure(
-            with: .builder(withAPIKey: "test_AFpuFmRxwiYCSJV0rgzxFqKjZDa")
+            with: .builder(withAPIKey: rcKey)
                 .with(appUserID: nil)
                 .build()
         )

@@ -126,8 +126,9 @@ struct AnimatedSplashScreen: View {
             withAnimation(.easeOut(duration: 0.5).delay(0.5)) {
                 textOpacity = 1.0
             }
-            // Dismiss after 2 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            // Dismiss after 2 seconds — Task keeps us on MainActor (Swift 6 safe)
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2.0))
                 withAnimation(.easeInOut(duration: 0.4)) {
                     isActive = false
                 }

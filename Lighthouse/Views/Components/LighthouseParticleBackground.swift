@@ -1,133 +1,167 @@
 import SwiftUI
 
-// MARK: - Global lighthouse beam + clarity particle background
-// Drop this behind any screen: LighthouseParticleBackground().ignoresSafeArea()
+// MARK: - LighthouseParticleBackground
+//
+// Production-hardened animated background:
+// • Respects .accessibilityReduceMotion — static gradient fallback, no animation
+// • Device-tier throttling: 8 / 14 / 24 particles based on physical RAM
+// • Single Canvas draw-pass for all animated elements (beam + particles + scan line)
+//   — eliminates per-particle GeometryReader layout passes
+// • .drawingGroup() forces Metal compositing of the Canvas layer
+// • TimelineView capped at 30 fps — sufficient for a bg effect, saves ~50% GPU vs 60fps
+// • .accessibilityHidden(true) — purely decorative, not VoiceOver-readable
 
 struct LighthouseParticleBackground: View {
-    @State private var beamPhase: CGFloat = 0
-    @State private var beamPulse: Double = 0
-    @State private var particles: [ClarityParticle] = ClarityParticle.pool()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // Computed once at type level — free after first call
+    private static let particleCount: Int = {
+        let gb = Int(ProcessInfo.processInfo.physicalMemory / (1024 * 1024 * 1024))
+        switch gb {
+        case ..<3:  return 8   // iPhone 12 mini and older
+        case 3..<5: return 14  // iPhone 13/14 base
+        default:    return 24  // iPhone 14 Pro, 15, 16
+        }
+    }()
+
+    // Particle pool is a constant value type — safe to capture in Canvas closure
+    private let particles: [ClarityParticle]
+
+    init() {
+        particles = ClarityParticle.pool(count: Self.particleCount)
+    }
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Deep navy base
+                // Deep navy base — always visible
                 LHColor.background
 
-                // Ambient radial bloom from bottom (lighthouse origin)
-                RadialGradient(
-                    colors: [
-                        LHColor.teal.opacity(0.07 + beamPulse * 0.04),
-                        LHColor.teal.opacity(0.02),
-                        Color.clear,
-                    ],
-                    center: UnitPoint(x: 0.5, y: 1.1),
-                    startRadius: 0,
-                    endRadius: geo.size.height * 0.85
-                )
+                // Static radial blooms — no per-frame re-render
+                ambientGlows(geo: geo)
 
-                // Gold bloom — top corner accent
-                RadialGradient(
-                    colors: [LHColor.gold.opacity(0.05), Color.clear],
-                    center: UnitPoint(x: 0.85, y: 0.08),
-                    startRadius: 0,
-                    endRadius: 180
-                )
-
-                // Sweeping beam cone
-                BeamCone(phase: beamPhase)
-                    .fill(
-                        AngularGradient(
-                            colors: [
-                                Color.clear,
-                                LHColor.teal.opacity(0.05 + beamPulse * 0.03),
-                                LHColor.gold.opacity(0.03),
-                                Color.clear,
-                            ],
-                            center: UnitPoint(x: 0.5, y: 1.05),
-                            startAngle: .degrees(-8),
-                            endAngle: .degrees(8)
-                        )
-                    )
-                    .blur(radius: 20)
-                    .frame(width: geo.size.width, height: geo.size.height)
-
-                // Floating clarity particles
-                ForEach(particles) { p in
-                    ClarityParticleView(particle: p, phase: beamPhase)
+                if !reduceMotion {
+                    // All animated elements: beam + particles + scan line
+                    // Single Canvas pass → single Metal draw call per frame
+                    TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { tl in
+                        let t = tl.date.timeIntervalSinceReferenceDate
+                        Canvas { ctx, size in
+                            drawBeam(ctx: ctx, size: size, t: t)
+                            drawParticles(ctx: ctx, size: size, t: t)
+                            drawScanLine(ctx: ctx, size: size, t: t)
+                        }
+                        .drawingGroup() // Metal GPU compositing
+                    }
+                    .allowsHitTesting(false)
                 }
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
+        }
+        .accessibilityHidden(true)
+    }
 
-                // Subtle horizontal scan line at bottom
-                LinearGradient(
-                    colors: [Color.clear, LHColor.teal.opacity(0.06), Color.clear],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                .frame(height: 1)
-                .blur(radius: 1)
-                .offset(y: geo.size.height * 0.72 + sin(beamPhase * 0.5) * 12)
-                .opacity(0.6)
-            }
+    // MARK: - Static Layers
+
+    @ViewBuilder
+    private func ambientGlows(geo: GeometryProxy) -> some View {
+        // Teal bloom from bottom — lighthouse origin point
+        RadialGradient(
+            colors: [LHColor.teal.opacity(0.07), LHColor.teal.opacity(0.02), Color.clear],
+            center: UnitPoint(x: 0.5, y: 1.1),
+            startRadius: 0,
+            endRadius: geo.size.height * 0.85
+        )
+
+        // Gold accent — upper trailing corner
+        RadialGradient(
+            colors: [LHColor.gold.opacity(0.04), Color.clear],
+            center: UnitPoint(x: 0.88, y: 0.06),
+            startRadius: 0,
+            endRadius: 160
+        )
+    }
+
+    // MARK: - Canvas Draw Functions
+
+    // Lighthouse beam cone: sweeps gently left-right
+    private func drawBeam(ctx: GraphicsContext, size: CGSize, t: TimeInterval) {
+        let sway = sin(t * 0.26) * 18.0
+        let origin = CGPoint(x: size.width / 2 + sway, y: size.height + 15)
+        let spread = size.width * 0.52
+
+        var path = Path()
+        path.move(to: origin)
+        path.addLine(to: CGPoint(x: size.width / 2 - spread, y: -15))
+        path.addLine(to: CGPoint(x: size.width / 2 + spread, y: -15))
+        path.closeSubpath()
+
+        let pulse = 0.055 + sin(t * 0.9) * 0.015
+        var c = ctx
+        c.addFilter(.blur(radius: 22))
+        c.drawLayer { inner in
+            inner.fill(path, with: .color(LHColor.teal.opacity(pulse)))
         }
-        .onAppear {
-            withAnimation(.linear(duration: 24).repeatForever(autoreverses: false)) {
-                beamPhase = .pi * 2
-            }
-            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-                beamPulse = 1
-            }
+    }
+
+    // Floating clarity particles — pre-computed positions from `t`
+    private func drawParticles(ctx: GraphicsContext, size: CGSize, t: TimeInterval) {
+        for p in particles {
+            let dx = sin(t * p.speed * 0.07 + p.phaseOffset) * 18.0
+            let dy = -cos(t * p.speed * 0.05 + p.phaseOffset) * 28.0
+            let px = p.x * size.width + dx
+            let py = p.startY * size.height + dy
+            let alpha = p.opacity * (0.55 + 0.45 * sin(t * 1.8 + p.phaseOffset))
+
+            var inner = ctx
+            inner.opacity = alpha
+            inner.fill(
+                Path(ellipseIn: CGRect(x: px - p.size / 2, y: py - p.size / 2,
+                                       width: p.size, height: p.size)),
+                with: .color(p.color)
+            )
         }
+    }
+
+    // Subtle horizontal scan line that drifts vertically
+    private func drawScanLine(ctx: GraphicsContext, size: CGSize, t: TimeInterval) {
+        let scanY = size.height * 0.72 + sin(t * 0.48) * 10.0
+        var line = Path()
+        line.move(to: CGPoint(x: 0, y: scanY))
+        line.addLine(to: CGPoint(x: size.width, y: scanY))
+
+        var c = ctx
+        c.opacity = 0.10
+        c.stroke(line, with: .color(LHColor.teal), lineWidth: 0.8)
     }
 }
 
-// MARK: - Beam Cone Shape
+// MARK: - Clarity Particle (value type, Sendable)
 
-private struct BeamCone: Shape {
-    var phase: CGFloat
-    var animatableData: CGFloat {
-        get { phase }
-        set { phase = newValue }
-    }
-
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        let origin = CGPoint(x: rect.midX + sin(phase * 0.3) * 20, y: rect.maxY + 20)
-        let spread: CGFloat = rect.width * 0.55
-        let topY: CGFloat = rect.minY - 20
-        p.move(to: origin)
-        p.addLine(to: CGPoint(x: rect.midX - spread, y: topY))
-        p.addLine(to: CGPoint(x: rect.midX + spread, y: topY))
-        p.closeSubpath()
-        return p
-    }
-}
-
-// MARK: - Clarity Particle
-
-struct ClarityParticle: Identifiable {
-    let id = UUID()
+struct ClarityParticle: Identifiable, Sendable {
+    let id: UUID
     let x: CGFloat        // 0–1 normalized
     let startY: CGFloat   // 0–1 normalized
     let size: CGFloat
-    let speed: Double     // animation duration
+    let speed: Double
     let opacity: Double
     let color: Color
     let phaseOffset: Double
 
-    static func pool() -> [ClarityParticle] {
+    static func pool(count: Int) -> [ClarityParticle] {
         let colors: [Color] = [
-            LHColor.teal.opacity(0.7),
-            LHColor.gold.opacity(0.6),
-            Color.white.opacity(0.5),
-            LHColor.teal.opacity(0.4),
+            LHColor.teal.opacity(0.75),
+            LHColor.gold.opacity(0.60),
+            Color.white.opacity(0.45),
+            LHColor.teal.opacity(0.40),
         ]
-        return (0..<24).map { _ in
+        return (0..<count).map { _ in
             ClarityParticle(
+                id: UUID(),
                 x: CGFloat.random(in: 0.05...0.95),
-                startY: CGFloat.random(in: 0.4...1.0),
-                size: CGFloat.random(in: 1.5...4.5),
-                speed: Double.random(in: 8...18),
-                opacity: Double.random(in: 0.2...0.55),
+                startY: CGFloat.random(in: 0.35...1.0),
+                size: CGFloat.random(in: 1.5...5.0),
+                speed: Double.random(in: 7...18),
+                opacity: Double.random(in: 0.18...0.55),
                 color: colors.randomElement()!,
                 phaseOffset: Double.random(in: 0...(.pi * 2))
             )
@@ -135,69 +169,37 @@ struct ClarityParticle: Identifiable {
     }
 }
 
-private struct ClarityParticleView: View {
-    let particle: ClarityParticle
-    let phase: CGFloat
-
-    var body: some View {
-        GeometryReader { geo in
-            let driftX = sin(phase * particle.speed * 0.07 + particle.phaseOffset) * 18
-            let driftY = -cos(phase * particle.speed * 0.05 + particle.phaseOffset) * 30
-            let x = particle.x * geo.size.width + driftX
-            let y = particle.startY * geo.size.height + driftY
-
-            Circle()
-                .fill(particle.color)
-                .frame(width: particle.size, height: particle.size)
-                .blur(radius: particle.size * 0.4)
-                .opacity(particle.opacity * (0.6 + 0.4 * sin(phase * 2 + particle.phaseOffset)))
-                .position(x: x, y: y)
-        }
-    }
-}
-
-// MARK: - Burst Particles (used on celebrations)
-
-struct BurstParticle: Identifiable {
-    let id = UUID()
-    var x: CGFloat
-    var y: CGFloat
-    let angle: Double
-    let distance: CGFloat
-    let size: CGFloat
-    let color: Color
-}
+// MARK: - Burst Particles (celebration use — Canvas-based, no individual views)
 
 struct ParticleBurstView: View {
     let center: CGPoint
     let isActive: Bool
     let colors: [Color]
 
-    @State private var particles: [BurstParticle] = []
-    @State private var animationProgress: CGFloat = 0
+    @State private var burstParticles: [BurstParticle] = []
+    @State private var progress: CGFloat = 0
 
     var body: some View {
-        Canvas { ctx, size in
-            for p in particles {
-                let dx = p.distance * animationProgress * CGFloat(cos(p.angle))
-                let dy = p.distance * animationProgress * CGFloat(sin(p.angle))
-                let opacity = Double(1.0 - animationProgress) * 0.9
-                let pSize = p.size * (1.0 - animationProgress * 0.5)
+        Canvas { ctx, _ in
+            for p in burstParticles {
+                let dx = p.distance * progress * cos(p.angle)
+                let dy = p.distance * progress * sin(p.angle)
+                let alpha = Double(1.0 - progress) * 0.9
+                let sz = p.size * (1.0 - progress * 0.5)
 
-                ctx.opacity = opacity
-                ctx.fill(
-                    Path(ellipseIn: CGRect(
-                        x: p.x + dx - pSize/2,
-                        y: p.y + dy - pSize/2,
-                        width: pSize, height: pSize
-                    )),
+                var inner = ctx
+                inner.opacity = alpha
+                inner.fill(
+                    Path(ellipseIn: CGRect(x: p.x + dx - sz/2, y: p.y + dy - sz/2,
+                                           width: sz, height: sz)),
                     with: .color(p.color)
                 )
             }
         }
+        .drawingGroup()
         .onChange(of: isActive) { _, active in
             guard active else { return }
-            particles = (0..<40).map { _ in
+            burstParticles = (0..<40).map { _ in
                 BurstParticle(
                     x: center.x, y: center.y,
                     angle: Double.random(in: 0...(.pi * 2)),
@@ -206,10 +208,18 @@ struct ParticleBurstView: View {
                     color: colors.randomElement() ?? LHColor.teal
                 )
             }
-            animationProgress = 0
-            withAnimation(.easeOut(duration: 1.2)) {
-                animationProgress = 1.0
-            }
+            progress = 0
+            withAnimation(.easeOut(duration: 1.2)) { progress = 1.0 }
         }
+        .accessibilityHidden(true)
     }
+}
+
+struct BurstParticle: Identifiable {
+    let id = UUID()
+    let x, y: CGFloat
+    let angle: Double
+    let distance: CGFloat
+    let size: CGFloat
+    let color: Color
 }

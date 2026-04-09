@@ -12,7 +12,9 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ZStack {
+                LighthouseParticleBackground().ignoresSafeArea()
+                ScrollView {
                 VStack(spacing: LHSpacing.lg) {
                     // Profile section
                     profileSection
@@ -35,6 +37,7 @@ struct SettingsView: View {
                 .padding(.top, LHSpacing.md)
             }
             .scrollIndicators(.hidden)
+            } // ZStack
             .background(LHColor.background)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)

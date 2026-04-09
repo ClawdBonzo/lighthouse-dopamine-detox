@@ -18,7 +18,9 @@ struct GamificationView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ZStack {
+                LighthouseParticleBackground().ignoresSafeArea()
+                ScrollView {
                 VStack(spacing: LHSpacing.lg) {
 
                     // Level + streak header
@@ -50,6 +52,7 @@ struct GamificationView: View {
                 }
             }
             .scrollIndicators(.hidden)
+            } // ZStack
             .background(LHColor.background)
             .navigationTitle("Quests")
             .navigationBarTitleDisplayMode(.large)
