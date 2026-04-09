@@ -60,5 +60,8 @@ struct StatCard: View {
                 appeared = true
             }
         }
+        // Accessibility: combine icon, value, title into one readable element
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title): \(value)")
     }
 }

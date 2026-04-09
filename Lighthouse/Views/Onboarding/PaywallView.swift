@@ -49,9 +49,12 @@ struct PaywallView: View {
                         if let package {
                             let success = await subscriptionService.purchase(package: package)
                             if success { onContinue() }
-                        } else {
-                            onContinue()
+                        } else if subscriptionService.packages.isEmpty {
+                            // RevenueCat offerings not loaded — retry load, don't allow bypass
+                            await subscriptionService.loadOfferings()
                         }
+                        // NOTE: If package is nil after retry, we stay on paywall (no free bypass)
+                        // DEBUG builds can temporarily set isPremium=true via Settings for testing
                     }
                 } label: {
                     ZStack {

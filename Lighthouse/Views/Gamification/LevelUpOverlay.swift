@@ -85,7 +85,9 @@ struct LevelUpOverlay: View {
                         contentOpacity = 0
                         beamOpacity = 0
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    // Swift 6 compliant delay — stays on @MainActor
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(300))
                         onDismiss()
                     }
                 } label: {

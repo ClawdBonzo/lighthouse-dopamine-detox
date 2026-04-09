@@ -13,6 +13,7 @@ struct LevelUpData {
 }
 
 // MARK: - Gamification Engine
+// @MainActor throughout — no DispatchQueue.main needed; Task { @MainActor in } for delays
 
 @MainActor
 @Observable
@@ -32,19 +33,19 @@ final class GamificationEngine {
 
     func streakMultiplier(for streak: Int) -> Double {
         switch streak {
-        case 0..<3: return 1.0
-        case 3..<7: return 1.5
+        case 0..<3:  return 1.0
+        case 3..<7:  return 1.5
         case 7..<14: return 2.0
-        default: return 3.0
+        default:     return 3.0
         }
     }
 
     func streakFlameColor(for streak: Int) -> Color {
         switch streak {
-        case 0..<3: return .orange
-        case 3..<7: return Color(red: 1, green: 0.82, blue: 0.4)
+        case 0..<3:  return .orange
+        case 3..<7:  return Color(red: 1, green: 0.82, blue: 0.4)
         case 7..<14: return Color(red: 0, green: 0.83, blue: 0.67)
-        default: return Color(red: 0.6, green: 0.4, blue: 1.0)
+        default:     return Color(red: 0.6, green: 0.4, blue: 1.0)
         }
     }
 
@@ -61,11 +62,12 @@ final class GamificationEngine {
         let record = XPRecord(amount: finalXP, source: source)
         context.insert(record)
 
-        // Show XP gain
+        // Show XP toast, auto-hide after 1.5 s — Swift 6 safe: Task stays on @MainActor
         recentXPGain = finalXP
         showXPGain = true
         hapticXPGain()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.5))
             self.showXPGain = false
         }
 
@@ -78,7 +80,7 @@ final class GamificationEngine {
             checkAndUnlock("level_\(newLevel.level)", profile: profile, context: context)
         }
 
-        // Check XP milestone badge
+        // XP milestone badge
         if profile.totalXPEarned >= 500 {
             checkAndUnlock("xp_500", profile: profile, context: context)
         }
@@ -91,24 +93,19 @@ final class GamificationEngine {
     func awardChallengeXP(difficulty: String, profile: UserProfile, context: ModelContext) {
         let base: Int
         switch difficulty.lowercased() {
-        case "easy": base = 15
+        case "easy":   base = 15
         case "medium": base = 25
-        case "hard": base = 40
-        default: base = 20
+        case "hard":   base = 40
+        default:       base = 20
         }
         awardXP(base, source: "challenge", profile: profile, context: context)
         progressQuests(metric: .challengesCompleted, by: 1, profile: profile, context: context)
 
         profile.totalChallengesCompleted += 1
 
-        // Challenge badges
-        if profile.totalChallengesCompleted == 1 {
-            checkAndUnlock("challenge_first", profile: profile, context: context)
-        } else if profile.totalChallengesCompleted == 10 {
-            checkAndUnlock("challenge_10", profile: profile, context: context)
-        } else if profile.totalChallengesCompleted == 50 {
-            checkAndUnlock("challenge_50", profile: profile, context: context)
-        }
+        if profile.totalChallengesCompleted == 1  { checkAndUnlock("challenge_first", profile: profile, context: context) }
+        if profile.totalChallengesCompleted == 10  { checkAndUnlock("challenge_10",   profile: profile, context: context) }
+        if profile.totalChallengesCompleted == 50  { checkAndUnlock("challenge_50",   profile: profile, context: context) }
 
         try? context.save()
     }
@@ -118,26 +115,12 @@ final class GamificationEngine {
         awardXP(base, source: "focus", profile: profile, context: context)
         progressQuests(metric: .focusMinutes, by: minutes, profile: profile, context: context)
 
-        // First focus badge
-        if profile.totalFocusMinutes <= minutes {
-            checkAndUnlock("focus_first", profile: profile, context: context)
-        }
+        if profile.totalFocusMinutes <= minutes { checkAndUnlock("focus_first",      profile: profile, context: context) }
+        if minutes >= 45                        { checkAndUnlock("focus_deep",       profile: profile, context: context) }
+        if profile.totalFocusMinutes >= 600     { checkAndUnlock("focus_10hrs",      profile: profile, context: context) }
 
-        // Deep focus badge (45+ min session)
-        if minutes >= 45 {
-            checkAndUnlock("focus_deep", profile: profile, context: context)
-        }
-
-        // Early bird badge (before 8am)
         let hour = Calendar.current.component(.hour, from: Date())
-        if hour < 8 {
-            checkAndUnlock("focus_early_bird", profile: profile, context: context)
-        }
-
-        // 10 hours total badge
-        if profile.totalFocusMinutes >= 600 {
-            checkAndUnlock("focus_10hrs", profile: profile, context: context)
-        }
+        if hour < 8 { checkAndUnlock("focus_early_bird", profile: profile, context: context) }
     }
 
     func awardMoodLogXP(profile: UserProfile, context: ModelContext) {
@@ -150,10 +133,9 @@ final class GamificationEngine {
         awardXP(bonus, source: "streak_bonus", profile: profile, context: context)
         progressQuests(metric: .streakMaintained, by: 1, profile: profile, context: context)
 
-        // Streak badges
         switch profile.currentStreak {
-        case 3: checkAndUnlock("streak_3", profile: profile, context: context)
-        case 7: checkAndUnlock("streak_7", profile: profile, context: context)
+        case 3:  checkAndUnlock("streak_3",  profile: profile, context: context)
+        case 7:  checkAndUnlock("streak_7",  profile: profile, context: context)
         case 14: checkAndUnlock("streak_14", profile: profile, context: context)
         case 30: checkAndUnlock("streak_30", profile: profile, context: context)
         default: break
@@ -169,32 +151,22 @@ final class GamificationEngine {
     func ensureQuestsExist(context: ModelContext) {
         let today = Calendar.current.startOfDay(for: .now)
 
-        // Check daily quests
         let dailyDescriptor = FetchDescriptor<Quest>(
             predicate: #Predicate { $0.questTypeRaw == "daily" && $0.assignedDate >= today }
         )
-        let existingDaily = (try? context.fetch(dailyDescriptor)) ?? []
-
-        if existingDaily.isEmpty {
-            let defs = QuestDefinition.dailyQuests(for: today)
-            for def in defs {
-                let quest = Quest(definition: def, assignedDate: today)
-                context.insert(quest)
+        if ((try? context.fetch(dailyDescriptor)) ?? []).isEmpty {
+            for def in QuestDefinition.dailyQuests(for: today) {
+                context.insert(Quest(definition: def, assignedDate: today))
             }
         }
 
-        // Check weekly quests
         let weekStart = Calendar.current.dateInterval(of: .weekOfYear, for: .now)?.start ?? today
         let weeklyDescriptor = FetchDescriptor<Quest>(
             predicate: #Predicate { $0.questTypeRaw == "weekly" && $0.assignedDate >= weekStart }
         )
-        let existingWeekly = (try? context.fetch(weeklyDescriptor)) ?? []
-
-        if existingWeekly.isEmpty {
-            let defs = QuestDefinition.weeklyQuests(for: today)
-            for def in defs {
-                let quest = Quest(definition: def, assignedDate: weekStart)
-                context.insert(quest)
+        if ((try? context.fetch(weeklyDescriptor)) ?? []).isEmpty {
+            for def in QuestDefinition.weeklyQuests(for: today) {
+                context.insert(Quest(definition: def, assignedDate: weekStart))
             }
         }
 
@@ -202,10 +174,7 @@ final class GamificationEngine {
     }
 
     func progressQuests(metric: QuestMetric, by amount: Int, profile: UserProfile, context: ModelContext) {
-        let now = Date()
-        let activeDescriptor = FetchDescriptor<Quest>(
-            predicate: #Predicate { !$0.isCompleted }
-        )
+        let activeDescriptor = FetchDescriptor<Quest>(predicate: #Predicate { !$0.isCompleted })
         let activeQuests = (try? context.fetch(activeDescriptor)) ?? []
 
         for quest in activeQuests where !quest.isExpired && quest.metric == metric {
@@ -213,23 +182,14 @@ final class GamificationEngine {
 
             if quest.currentCount >= quest.targetCount && !quest.isCompleted {
                 quest.isCompleted = true
-                quest.completedAt = now
+                quest.completedAt = Date()
                 profile.questsCompleted += 1
                 awardXP(quest.xpReward, source: "quest_\(quest.questID)", profile: profile, context: context)
                 hapticQuestComplete()
 
-                // Quest badges
-                if profile.questsCompleted == 1 {
-                    checkAndUnlock("quest_first", profile: profile, context: context)
-                } else if profile.questsCompleted == 10 {
-                    checkAndUnlock("quest_10", profile: profile, context: context)
-                }
+                if profile.questsCompleted == 1  { checkAndUnlock("quest_first", profile: profile, context: context) }
+                if profile.questsCompleted == 10 { checkAndUnlock("quest_10",    profile: profile, context: context) }
             }
-        }
-
-        // Track XP-based quest progress separately
-        if metric == .xpEarned {
-            // Already handled via direct xp updates — skip to avoid double count
         }
 
         try? context.save()
@@ -238,13 +198,8 @@ final class GamificationEngine {
     // MARK: - Badge Management
 
     func checkAndUnlock(_ badgeID: String, profile: UserProfile, context: ModelContext) {
-        // Check if already earned
-        let descriptor = FetchDescriptor<Badge>(
-            predicate: #Predicate { $0.badgeID == badgeID }
-        )
-        let existing = (try? context.fetch(descriptor)) ?? []
-        guard existing.isEmpty else { return }
-
+        let descriptor = FetchDescriptor<Badge>(predicate: #Predicate { $0.badgeID == badgeID })
+        guard ((try? context.fetch(descriptor)) ?? []).isEmpty else { return }
         guard let definition = BadgeDefinition.badge(id: badgeID) else { return }
         unlockBadge(definition, profile: profile, context: context)
     }
@@ -253,7 +208,7 @@ final class GamificationEngine {
         let badge = Badge(badgeID: definition.id)
         context.insert(badge)
 
-        // Award XP without recursion — direct update, no badge checks
+        // Award XP directly — no badge check to avoid recursion
         let record = XPRecord(amount: definition.xpReward, source: "badge_\(definition.id)")
         profile.xp += definition.xpReward
         profile.totalXPEarned += definition.xpReward
@@ -263,29 +218,32 @@ final class GamificationEngine {
         showBadgeUnlock = true
         hapticBadgeUnlock()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+        // Auto-hide after 3 s — Swift 6 safe
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3.0))
             self.showBadgeUnlock = false
         }
 
         try? context.save()
     }
 
-    // MARK: - Haptics
+    // MARK: - Haptics (all @MainActor — UIKit generators require main thread)
 
     func hapticLevelUp() {
         let heavy = UIImpactFeedbackGenerator(style: .heavy)
         heavy.impactOccurred()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
             heavy.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            try? await Task.sleep(for: .milliseconds(150))
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
 
     func hapticQuestComplete() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(200))
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
@@ -293,10 +251,10 @@ final class GamificationEngine {
     func hapticBadgeUnlock() {
         let rigid = UIImpactFeedbackGenerator(style: .rigid)
         rigid.impactOccurred()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(120))
             rigid.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            try? await Task.sleep(for: .milliseconds(130))
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
@@ -304,8 +262,12 @@ final class GamificationEngine {
     func hapticStreakMilestone() {
         let heavy = UIImpactFeedbackGenerator(style: .heavy)
         heavy.impactOccurred()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { heavy.impactOccurred() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { heavy.impactOccurred() }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            heavy.impactOccurred()
+            try? await Task.sleep(for: .milliseconds(150))
+            heavy.impactOccurred()
+        }
     }
 
     func hapticXPGain() {

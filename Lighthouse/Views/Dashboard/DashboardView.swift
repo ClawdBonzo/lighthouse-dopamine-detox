@@ -317,12 +317,18 @@ struct ChallengeCard: View {
                         .font(.system(size: 28))
                         .foregroundStyle(LHColor.teal)
                 }
+                .accessibilityLabel("Mark \(challenge.title) as complete")
             } else {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 28))
                     .foregroundStyle(LHColor.success)
+                    .accessibilityLabel("\(challenge.title) completed")
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(challenge.isCompleted
+            ? "\(challenge.title), completed. \(challenge.durationMinutes) minutes, \(challenge.difficultyLabel)."
+            : "\(challenge.title), \(challenge.durationMinutes) minutes, \(challenge.difficultyLabel). Double-tap to mark complete.")
         .lhGlowCard(color: challenge.isCompleted ? LHColor.success : Color(hex: challenge.categoryColor))
     }
 }

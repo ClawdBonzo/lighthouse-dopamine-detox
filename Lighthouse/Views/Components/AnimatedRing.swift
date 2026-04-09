@@ -68,5 +68,8 @@ struct AnimatedRing: View {
             }
             glowPulse = true
         }
+        // Decorative ring — expose progress value to accessibility tree
+        .accessibilityLabel("\(Int(progress * 100))% complete")
+        .accessibilityValue(String(format: "%.0f%%", progress * 100))
     }
 }
